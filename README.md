@@ -15,9 +15,9 @@
 
 > *(Add your screenshot here after uploading to GitHub)*
 
-```id="preview"
+id="preview"
 ![App Screenshot](./screenshots/app.png)
-```
+
 
 ---
 
