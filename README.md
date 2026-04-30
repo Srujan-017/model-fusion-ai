@@ -13,7 +13,7 @@
 
 ## 📸 Preview
 
-> *(Add your screenshot here after uploading to GitHub)*
+
 
 id="preview"
 ![App Screenshot](./screenshots/app.png)
