@@ -15,7 +15,7 @@
 
 
 
-id="preview"
+
 ![App Screenshot](./screenshots/app.png)
 
 
