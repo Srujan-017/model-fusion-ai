@@ -17,7 +17,7 @@ app.use(express.json());
 app.use("/api/chat", chatRoutes);
 
 app.get("/", (req, res) => {
-  res.send("ClarifyAI API Running");
+res.send("ModelFusion AI API Running");
 });
 
 const PORT = process.env.PORT || 8080;

@@ -21,7 +21,7 @@ export default function App() {
         </div>
 
         <div className="mt-4 text-gray-400 text-sm">
-          ClarifyAI • GPT-4o
+        ModelFusion AI • Multi-Model
         </div>
       </div>
 
@@ -30,7 +30,7 @@ export default function App() {
         
         {/* TOP HEADER */}
         <div className="h-[55px] border-b border-[#2A2B31] flex items-center justify-center text-lg font-semibold">
-          ClarifyAI
+         ModelFusion AI
         </div>
 
         {/* CHAT WINDOW */}
