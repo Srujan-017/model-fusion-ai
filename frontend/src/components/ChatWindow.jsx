@@ -5,11 +5,11 @@ import Message from "./Message";
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080/api/chat";
 
 const modelDetails = {
-  gpt: { label: "GPT-4o", accent: "from-[#B7F7CB] to-[#67E8F9]", speed: "Balanced", role: "Creative reasoning" },
-  gpt41: { label: "GPT-4.1", accent: "from-[#67E8F9] to-[#A5B4FC]", speed: "Precise", role: "Structured coding" },
-  deepseek: { label: "DeepSeek", accent: "from-[#FBBF24] to-[#B7F7CB]", speed: "Analytical", role: "Deep problem solving" },
-  grok: { label: "Grok 3 Mini", accent: "from-[#FDA4AF] to-[#FBBF24]", speed: "Quick", role: "Fast exploration" },
-  llama: { label: "Llama 4 Scout", accent: "from-[#A7F3D0] to-[#C4B5FD]", speed: "Open", role: "Broad drafting" },
+  gpt: { label: "GPT-4o", accent: "from-[#d4d4d4] to-[#9ca3af]", speed: "Balanced", role: "Creative reasoning" },
+  gpt41: { label: "GPT-4.1", accent: "from-[#e5e7eb] to-[#6b7280]", speed: "Precise", role: "Structured coding" },
+  deepseek: { label: "DeepSeek", accent: "from-[#f3f4f6] to-[#9ca3af]", speed: "Analytical", role: "Deep problem solving" },
+  grok: { label: "Grok 3 Mini", accent: "from-[#d1d5db] to-[#6b7280]", speed: "Quick", role: "Fast exploration" },
+  llama: { label: "Llama 4 Scout", accent: "from-[#e5e7eb] to-[#9ca3af]", speed: "Open", role: "Broad drafting" },
 };
 
 const createMessageId = () => window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`;
@@ -20,6 +20,8 @@ export default function ChatWindow({ messages, setMessages, model, setModel, onN
   const [streaming, setStreaming] = useState(false);
   const [listening, setListening] = useState(false);
   const [voiceSupported, setVoiceSupported] = useState(false);
+  const [imageData, setImageData] = useState("");
+  const [imageName, setImageName] = useState("");
   const messagesRef = useRef(null);
   const streamTimerRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -124,9 +126,12 @@ export default function ChatWindow({ messages, setMessages, model, setModel, onN
 
   const send = async () => {
     const prompt = input.trim();
-    if (!prompt || loading || streaming) return;
+    if ((!prompt && !imageData) || loading || streaming) return;
 
-    const userMsg = { id: createMessageId(), role: "user", content: prompt };
+    const userText = imageData
+      ? `${prompt || "Analyze the uploaded image and answer my question."}\n\n[Attached image: ${imageName || "image"}]`
+      : prompt;
+    const userMsg = { id: createMessageId(), role: "user", content: userText };
     const updated = [...messages, userMsg];
 
     setMessages(updated);
@@ -137,15 +142,27 @@ export default function ChatWindow({ messages, setMessages, model, setModel, onN
       const res = await axios.post(API_BASE, {
         messages: updated,
         model,
+        image: imageData || undefined,
       });
 
       const reply = res.data.reply || "Error: Empty response";
       setLoading(false);
       streamReply(reply);
+      setImageData("");
+      setImageName("");
     } catch (err) {
       setLoading(false);
       streamReply("Error: " + err.message);
     }
+  };
+
+  const handleImageUpload = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setImageData(String(reader.result || ""));
+    reader.readAsDataURL(file);
+    setImageName(file.name);
   };
 
   const toggleVoiceInput = () => {
@@ -211,11 +228,9 @@ export default function ChatWindow({ messages, setMessages, model, setModel, onN
           <div className="control-cluster flex flex-col gap-2 sm:flex-row sm:items-center">
             <div className="chat-actions">
               <button type="button" onClick={onNewChat}>
-                <span className="control-icon icon-plus" />
                 New
               </button>
               <button type="button" onClick={onClearChat} disabled={!messages.length}>
-                <span className="control-icon icon-spark" />
                 Clear
               </button>
             </div>
@@ -250,30 +265,11 @@ export default function ChatWindow({ messages, setMessages, model, setModel, onN
 
       {/* CHAT MESSAGES */}
       <section ref={messagesRef} className="chat-canvas custom-scroll relative min-h-0 flex-1 overflow-auto px-4 py-6">
-        <div className="canvas-orb orb-one" />
-        <div className="canvas-orb orb-two" />
-        <div className="data-grid" />
         <div className="conversation-stack mx-auto flex min-h-full max-w-6xl flex-col gap-4">
           {messages.length === 0 && (
             <div className="empty-state mx-auto w-full max-w-3xl">
-              <div className="empty-visual">
-                <span className="node node-a" />
-                <span className="node node-b" />
-                <span className="node node-c" />
-                <span className="node node-d" />
-                <div className="neural-panel">
-                  <div className="neural-scan" />
-                  <div className="neural-title">ModelFusion AI</div>
-                  <div className="neural-lines">
-                    <span />
-                    <span />
-                    <span />
-                  </div>
-                </div>
-              </div>
-
               <div className="text-center">
-                <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[#B7F7CB]">Real chat workspace</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[#bdbdbd]">Clean workspace</p>
                 <h1 className="mt-3 text-3xl font-semibold leading-tight text-white sm:text-5xl">
                   Start a conversation that stays saved.
                 </h1>
@@ -325,6 +321,10 @@ export default function ChatWindow({ messages, setMessages, model, setModel, onN
             />
 
             <div className="composer-actions">
+              <label className="upload-button" title="Upload image">
+                Image
+                <input type="file" accept="image/*" onChange={handleImageUpload} hidden />
+              </label>
               <button
                 type="button"
                 onClick={toggleVoiceInput}
@@ -332,20 +332,28 @@ export default function ChatWindow({ messages, setMessages, model, setModel, onN
                 className={`voice-button ${listening ? "is-listening" : ""}`}
                 title={voiceSupported ? "Use voice input" : "Voice input is not supported in this browser"}
               >
-                <span className="control-icon icon-mic" />
+                Voice
               </button>
 
               <button
                 type="button"
                 onClick={send}
-                disabled={loading || streaming || !input.trim()}
+                disabled={loading || streaming || (!input.trim() && !imageData)}
                 className="send-button"
               >
                 <span>{loading ? "Thinking" : streaming ? "Writing" : "Send"}</span>
-                <span className="control-icon icon-send" />
               </button>
             </div>
           </div>
+          {imageData && (
+            <div className="mt-2 flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-2">
+              <img src={imageData} alt="Uploaded preview" className="h-12 w-12 rounded-md object-cover" />
+              <span className="truncate text-xs text-[#a8a8a8]">{imageName}</span>
+              <button type="button" className="ml-auto text-xs text-white/80" onClick={() => { setImageData(""); setImageName(""); }}>
+                Remove
+              </button>
+            </div>
+          )}
           <div className="mt-2 flex flex-wrap items-center justify-between gap-2 px-1 text-[11px] text-[#748094]">
             <span>{listening ? "Listening... speak now." : "Enter to send. Shift + Enter for a new line."}</span>
             <span>{activeModel.label} selected</span>

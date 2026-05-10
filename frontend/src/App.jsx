@@ -5,9 +5,8 @@ const STORAGE_KEY = "modelfusion.chatThreads.v1";
 const THEME_KEY = "modelfusion.theme.v1";
 
 const themes = [
-  { id: "fusion", name: "Fusion", hint: "Dark neon" },
-  { id: "midnight", name: "Midnight", hint: "Deep focus" },
-  { id: "aurora", name: "Aurora", hint: "Soft color" },
+  { id: "mono", name: "Monochrome", hint: "Black & white" },
+  { id: "fusion", name: "Fusion", hint: "Dark accent" },
   { id: "daylight", name: "Daylight", hint: "Bright clean" },
 ];
 
@@ -45,7 +44,7 @@ const loadWorkspace = () => {
 
 export default function App() {
   const [workspace, setWorkspace] = useState(loadWorkspace);
-  const [theme, setTheme] = useState(() => localStorage.getItem(THEME_KEY) || "fusion");
+  const [theme, setTheme] = useState(() => localStorage.getItem(THEME_KEY) || "mono");
 
   const activeThread = useMemo(
     () => workspace.threads.find(thread => thread.id === workspace.activeThreadId) || workspace.threads[0],
@@ -165,7 +164,6 @@ export default function App() {
               onClick={createNewChat}
               className="sidebar-action primary"
             >
-              <span className="control-icon icon-plus" />
               <span>New Chat</span>
             </button>
 
@@ -175,7 +173,6 @@ export default function App() {
               disabled={!activeThread?.messages.length}
               className="sidebar-action"
             >
-              <span className="control-icon icon-spark" />
               <span>Clear Chat</span>
             </button>
           </div>
@@ -198,23 +195,22 @@ export default function App() {
                 </button>
               ))}
             </div>
-          </div>
-
-          <div className="mb-4 grid grid-cols-3 gap-2">
-            <div className="metric-tile">
-              <span className="metric-dot bg-[#B7F7CB]" />
-              <strong>{workspace.threads.length}</strong>
-              <small>Chats</small>
-            </div>
-            <div className="metric-tile">
-              <span className="metric-dot bg-[#67E8F9]" />
-              <strong>{totalMessages}</strong>
-              <small>Messages</small>
-            </div>
-            <div className="metric-tile">
-              <span className="metric-dot bg-[#FBBF24]" />
-              <strong>{activeThread?.model?.toUpperCase()}</strong>
-              <small>Model</small>
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              <div className="metric-tile">
+                <span className="metric-dot bg-[#B7F7CB]" />
+                <strong>{workspace.threads.length}</strong>
+                <small>Chats</small>
+              </div>
+              <div className="metric-tile">
+                <span className="metric-dot bg-[#67E8F9]" />
+                <strong>{totalMessages}</strong>
+                <small>Messages</small>
+              </div>
+              <div className="metric-tile">
+                <span className="metric-dot bg-[#FBBF24]" />
+                <strong>{activeThread?.model?.toUpperCase()}</strong>
+                <small>Model</small>
+              </div>
             </div>
           </div>
 
@@ -235,7 +231,7 @@ export default function App() {
                   onClick={() => selectThread(thread.id)}
                   className="thread-main"
                 >
-                  <span className="truncate text-sm font-semibold text-white">{thread.title}</span>
+                  <span className="truncate text-sm font-semibold text-[var(--text)]">{thread.title}</span>
                   <span className="mt-1 truncate text-xs text-[#9AA6B6]">
                     {thread.messages.length ? `${thread.messages.length} messages` : "Empty thread"}
                   </span>
@@ -246,7 +242,7 @@ export default function App() {
                   className="thread-delete"
                   aria-label={`Delete ${thread.title}`}
                 >
-                  <span className="control-icon icon-trash" />
+                  Delete
                 </button>
               </div>
             ))}
@@ -277,28 +273,8 @@ export default function App() {
               </div>
             </div>
 
-            <div className="hidden items-center gap-3 sm:flex">
-              <div className="top-theme-switcher" aria-label="Theme switcher">
-                {themes.map(item => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setTheme(item.id)}
-                    className={`theme-dot-button theme-swatch-${item.id} ${theme === item.id ? "is-active" : ""}`}
-                    title={`${item.name}: ${item.hint}`}
-                  >
-                    <span />
-                    <em>{item.name}</em>
-                  </button>
-                ))}
-              </div>
-              <div className="signal-pill">
-                <span className="signal-dot" />
-                Saved
-              </div>
-              <div className="rounded-lg border border-white/10 bg-white/[0.055] px-3 py-2 text-xs font-medium text-[#C6D1DF]">
-                MERN UI
-              </div>
+            <div className="hidden items-center sm:flex">
+              <div className="signal-pill">Workspace ready</div>
             </div>
           </header>
 
