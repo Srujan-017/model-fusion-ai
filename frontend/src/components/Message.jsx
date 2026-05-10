@@ -1,11 +1,15 @@
 import React, { useMemo, useState } from "react";
 
 const renderInline = (value) => {
-  const parts = value.split(/(\*\*[^*]+\*\*|`[^`]+`)/g).filter(Boolean);
+  const parts = value.split(/(\*\*[^*]+\*\*|`[^`]+`|\*[^*]+\*)/g).filter(Boolean);
 
   return parts.map((part, index) => {
     if (part.startsWith("**") && part.endsWith("**")) {
       return <strong key={index}>{part.slice(2, -2)}</strong>;
+    }
+
+    if (part.startsWith("*") && part.endsWith("*")) {
+      return <em key={index}>{part.slice(1, -1)}</em>;
     }
 
     if (part.startsWith("`") && part.endsWith("`")) {
@@ -34,10 +38,7 @@ const CodeBlock = ({ code, language, index }) => {
   return (
     <div className="code-showcase" style={{ "--block-index": index }}>
       <div className="code-showcase-header">
-        <div className="code-language">
-          <span />
-          {language || "code"}
-        </div>
+        <div className="code-language">{language || "code"}</div>
         <button type="button" onClick={copyCode}>
           {copied ? "Copied" : "Copy code"}
         </button>
@@ -54,7 +55,7 @@ const CodeBlock = ({ code, language, index }) => {
   );
 };
 
-const buildBlocks = (text) => {
+const buildBlocks = (text = "") => {
   const lines = text.replace(/\r\n/g, "\n").split("\n");
   const blocks = [];
   let paragraph = [];
@@ -88,32 +89,15 @@ const buildBlocks = (text) => {
         return;
       }
 
-      if (rawLine.includes("```")) {
-        const [beforeFence] = rawLine.split("```");
-        if (beforeFence) code.lines.push(beforeFence);
-        flushCode();
-        return;
-      }
-
       code.lines.push(rawLine);
       return;
     }
 
-    const fenceMatch = trimmed.match(/^```([A-Za-z0-9#+._-]*)\s*(.*)$/);
+    const fenceMatch = trimmed.match(/^```([A-Za-z0-9#+._-]*)\s*$/);
     if (fenceMatch) {
       flushParagraph();
       flushList();
       code = { type: "code", language: fenceMatch[1] || "code", lines: [] };
-
-      if (fenceMatch[2]) {
-        if (fenceMatch[2].includes("```")) {
-          const [inlineCode] = fenceMatch[2].split("```");
-          code.lines.push(inlineCode);
-          flushCode();
-        } else {
-          code.lines.push(fenceMatch[2]);
-        }
-      }
       return;
     }
 
@@ -123,15 +107,27 @@ const buildBlocks = (text) => {
       return;
     }
 
-    const headingMatch = trimmed.match(/^#{1,3}\s+(.+)$/);
+    const headingMatch = trimmed.match(/^(#{1,3})\s+(.+)$/);
     const boldHeadingMatch = trimmed.match(/^\*\*(.+?)\*\*:?$/);
     const numberedMatch = trimmed.match(/^(\d+)\.\s+(.+)$/);
     const bulletMatch = trimmed.match(/^[-*]\s+(.+)$/);
+    const quoteMatch = trimmed.match(/^>\s+(.+)$/);
 
     if (headingMatch || boldHeadingMatch) {
       flushParagraph();
       flushList();
-      blocks.push({ type: "heading", text: headingMatch?.[1] || boldHeadingMatch[1] });
+      blocks.push({
+        type: "heading",
+        level: headingMatch ? headingMatch[1].length : 3,
+        text: headingMatch?.[2] || boldHeadingMatch[1],
+      });
+      return;
+    }
+
+    if (quoteMatch) {
+      flushParagraph();
+      flushList();
+      blocks.push({ type: "quote", text: quoteMatch[1] });
       return;
     }
 
@@ -169,21 +165,22 @@ const AssistantContent = ({ text }) => {
         const style = { "--block-index": index };
 
         if (block.type === "code") {
-          return (
-            <CodeBlock
-              key={index}
-              code={block.code}
-              language={block.language}
-              index={index}
-            />
-          );
+          return <CodeBlock key={index} code={block.code} language={block.language} index={index} />;
         }
 
         if (block.type === "heading") {
           return (
-            <h3 key={index} className="response-heading" style={style}>
+            <h3 key={index} className={`response-heading level-${block.level}`} style={style}>
               {renderInline(block.text)}
             </h3>
+          );
+        }
+
+        if (block.type === "quote") {
+          return (
+            <blockquote key={index} className="response-quote" style={style}>
+              {renderInline(block.text)}
+            </blockquote>
           );
         }
 
@@ -217,7 +214,7 @@ const AssistantContent = ({ text }) => {
   );
 };
 
-export default function Message({ role, text, streaming = false }) {
+export default function Message({ role, text, image, streaming = false }) {
   const [copied, setCopied] = useState(false);
   const isUser = role === "user";
   const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
@@ -242,7 +239,13 @@ export default function Message({ role, text, streaming = false }) {
             <span>You</span>
           </div>
           <div className="message-bubble">
-            {text}
+            {image?.src && (
+              <figure className="message-image-card">
+                <img src={image.src} alt={image.name || "Uploaded image"} />
+                <figcaption>{image.name || "Uploaded image"}</figcaption>
+              </figure>
+            )}
+            {text && <div className="message-text">{text}</div>}
           </div>
         </div>
       </div>
@@ -252,13 +255,12 @@ export default function Message({ role, text, streaming = false }) {
   return (
     <div className="message-row is-assistant">
       <article className="response-card">
-        <div className="response-card-glow" />
         <header className="response-header">
           <div className="response-identity">
             <span className="response-logo">MF</span>
             <div>
               <div className="response-name">ModelFusion</div>
-              <div className="response-subtitle">Polished AI response</div>
+              <div className="response-subtitle">AI response</div>
             </div>
           </div>
 

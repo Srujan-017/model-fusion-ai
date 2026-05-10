@@ -129,9 +129,14 @@ export default function ChatWindow({ messages, setMessages, model, setModel, onN
     if ((!prompt && !imageData) || loading || streaming) return;
 
     const userText = imageData
-      ? `${prompt || "Analyze the uploaded image and answer my question."}\n\n[Attached image: ${imageName || "image"}]`
+      ? prompt || "Analyze the uploaded image and answer my question."
       : prompt;
-    const userMsg = { id: createMessageId(), role: "user", content: userText };
+    const userMsg = {
+      id: createMessageId(),
+      role: "user",
+      content: userText,
+      image: imageData ? { src: imageData, name: imageName || "Uploaded image" } : undefined,
+    };
     const updated = [...messages, userMsg];
 
     setMessages(updated);
@@ -292,6 +297,7 @@ export default function ChatWindow({ messages, setMessages, model, setModel, onN
               key={msg.id || `${msg.role}-${i}`}
               role={msg.role}
               text={msg.content}
+              image={msg.image}
               streaming={Boolean(msg.streaming)}
             />
           ))}

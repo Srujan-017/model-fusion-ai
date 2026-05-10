@@ -7,6 +7,10 @@ const THEME_KEY = "modelfusion.theme.v1";
 const themes = [
   { id: "mono", name: "Monochrome", hint: "Black & white" },
   { id: "fusion", name: "Fusion", hint: "Dark accent" },
+  { id: "midnight", name: "Midnight", hint: "Blue focus" },
+  { id: "aurora", name: "Aurora", hint: "Soft neon" },
+  { id: "ember", name: "Ember", hint: "Warm glow" },
+  { id: "cyber", name: "Cyber", hint: "Electric" },
   { id: "daylight", name: "Daylight", hint: "Bright clean" },
 ];
 
@@ -189,34 +193,20 @@ export default function App() {
                   type="button"
                   onClick={() => setTheme(item.id)}
                   className={`theme-choice theme-swatch-${item.id} ${theme === item.id ? "is-active" : ""}`}
+                  title={item.name}
                 >
                   <span />
-                  {item.name}
+                  <em>{item.name}</em>
                 </button>
               ))}
-            </div>
-            <div className="mt-3 grid grid-cols-3 gap-2">
-              <div className="metric-tile">
-                <span className="metric-dot bg-[#B7F7CB]" />
-                <strong>{workspace.threads.length}</strong>
-                <small>Chats</small>
-              </div>
-              <div className="metric-tile">
-                <span className="metric-dot bg-[#67E8F9]" />
-                <strong>{totalMessages}</strong>
-                <small>Messages</small>
-              </div>
-              <div className="metric-tile">
-                <span className="metric-dot bg-[#FBBF24]" />
-                <strong>{activeThread?.model?.toUpperCase()}</strong>
-                <small>Model</small>
-              </div>
             </div>
           </div>
 
           <div className="mb-3 flex items-center justify-between px-1">
             <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#657184]">History</span>
-            <span className="rounded-full border border-white/10 px-2 py-1 text-[11px] text-[#9AA6B6]">Saved locally</span>
+            <span className="rounded-full border border-white/10 px-2 py-1 text-[11px] text-[#9AA6B6]">
+              {workspace.threads.length} chats
+            </span>
           </div>
 
           <div className="custom-scroll flex-1 space-y-2 overflow-auto pr-1">
