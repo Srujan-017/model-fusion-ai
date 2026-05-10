@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import Message from "./Message";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080/api/chat";
+const API_BASE = (import.meta.env.VITE_API_URL || "/api/chat").replace(/\/$/, "");
 
 const modelDetails = {
   gpt: { label: "GPT-4o", accent: "from-[#d4d4d4] to-[#9ca3af]", speed: "Balanced", role: "Creative reasoning" },
@@ -152,7 +152,8 @@ export default function ChatWindow({ messages, setMessages, model, setModel, onN
       setImageName("");
     } catch (err) {
       setLoading(false);
-      streamReply("Error: " + err.message);
+      const serverMessage = err.response?.data?.details || err.response?.data?.error;
+      streamReply(`Error: ${serverMessage || err.message}`);
     }
   };
 
